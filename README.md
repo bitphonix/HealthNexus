@@ -1,8 +1,8 @@
-# Doctor Appointment Assistant
+# HealthNexus: An Agentic AI Appointment Assistant
 
 ## 🚀 Project Overview
 
-This is a full-stack web application featuring an advanced, agentic AI powered by LangChain and Google's Gemini model. The agent serves as a "Doctor Appointment Assistant," capable of dynamically using a suite of tools to handle user requests for booking, checking availability, and reporting. The backend is built with FastAPI, and it interacts with a PostgreSQL database, Google Calendar, Gmail for email confirmations, and Slack for notifications.
+**HealthNexus** is a full-stack web application featuring an advanced, agentic AI powered by LangChain and Google's Gemini model. The agent serves as a "Doctor Appointment Assistant," capable of dynamically using a suite of tools to handle user requests for booking, checking availability, and reporting. The backend is built with FastAPI, and it interacts with a PostgreSQL database, Google Calendar, Gmail for email confirmations, and Slack for notifications.
 
 ### Core Features
 
@@ -11,6 +11,47 @@ This is a full-stack web application featuring an advanced, agentic AI powered b
 *   **Automated Confirmations:** Successfully booked appointments trigger a confirmation email to the patient and create a Google Calendar event.
 *   **Doctor Reporting Tools:** Doctors can query the system for appointment summaries, which are also sent as notifications to a Slack channel.
 *   **Stateful Conversations:** The agent uses memory to remember the user's name, email, and other details throughout the booking process.
+
+---
+
+## 🏗️ Project Structure
+
+The project is organized with a clean, modular structure to separate concerns between the agent, tools, services, and web interface.
+
+```
+HealthNexus/
+├── backend/
+│   ├── agents/
+│   │   └── doctor_agent.py         # Core LangChain agent logic
+│   ├── mcp_tools/
+│   │   ├── appointment_tools.py    # Tool for booking appointments
+│   │   ├── availability_tools.py   # Tool for checking availability
+│   │   ├── doctor_tools.py         # Tools for finding doctors
+│   │   └── reporting_tools.py      # Tools for doctor summaries
+│   ├── services/
+│   │   ├── email_service.py        # Handles Gmail SMTP connection
+│   │   ├── google_calendar.py      # Handles Google Calendar API
+│   │   ├── seeder.py               # Populates DB with test data
+│   │   └── slack_notifier.py       # Handles Slack notifications
+│   ├── static/
+│   │   ├── app.js
+│   │   └── style.css
+│   ├── templates/
+│   │   └── index.html
+│   ├── database.py                 # SQLAlchemy engine and session setup
+│   ├── main.py                     # FastAPI app and API endpoints
+│   ├── mcp_client.py               # Client for agent to call tools
+│   └── models.py                   # SQLAlchemy database models
+│
+├── .env                            # Local environment variables (GIT-IGNORED)
+├── .gitignore                      # Specifies files for Git to ignore
+├── google_creds_v2.json            # Google OAuth credentials (GIT-IGNORED)
+├── requirements.txt                # Project dependencies
+├── seed_db.py                      # Script to run the seeder
+└── README.md                       # This file
+```
+
+---
 
 ## 🔧 Tech Stack
 
@@ -35,8 +76,9 @@ Follow these steps to set up and run the project locally.
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/doctor-appointment-agent.git
-cd doctor-appointment-agent```
+git clone https://github.com/bitphonix/HealthNexus.git
+cd HealthNexus
+```
 
 ### 2. Set Up Virtual Environment
 
@@ -60,14 +102,13 @@ pip install -r requirements.txt
 ### 4. Set Up PostgreSQL
 
 1.  Make sure your PostgreSQL server is running.
-2.  Create a new database for this project (e.g., `doctor_appointments`).
-3.  You will need the database connection URL (e.g., `postgresql://user:password@localhost/doctor_appointments`).
+2.  Create a new database for this project (e.g., `healthnexus_db`).
+3.  You will need the database connection URL (e.g., `postgresql://user:password@localhost/healthnexus_db`).
 
 ### 5. Configure Environment Variables
 
 1.  In the project's root directory, create a file named `.env`.
-2.  Copy the contents of `.env.example` into your new `.env` file.
-3.  Fill in the values for each variable:
+2.  Fill in the values for each variable:
     *   `DATABASE_URL`: Your PostgreSQL connection URL from the previous step.
     *   `GOOGLE_API_KEY`: Your API key for the Gemini model from Google AI Studio.
     *   `GMAIL_SENDER`: The Gmail address the confirmation emails will be sent from.
@@ -84,7 +125,7 @@ This project uses the Google Calendar API.
 4.  Go to **Credentials** -> **Create Credentials** -> **OAuth client ID**.
 5.  Select **Desktop app** as the application type and give it a name.
 6.  Click **Download JSON**. Rename the downloaded file to `google_creds_v2.json` and place it in the project's root directory.
-7.  Go to the **OAuth Consent Screen**, click `EDIT APP`, and set the **App name** (e.g., "Doctor Appointment Assistant"). Fill in the required email fields and save.
+7.  Go to the **OAuth Consent Screen**, click `EDIT APP`, and set the **App name** (e.g., "HealthNexus"). Fill in the required email fields and save.
 
 ### 7. Run the Application
 
