@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Appointment Assistant</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Doctor Appointment Assistant</h1>
+
+        <div class="role-selector">
+            <label>Select Role:</label>
+            <input type="radio" id="role-patient" name="role" value="patient" checked>
+            <label for="role-patient">Patient</label>
+            <input type="radio" id="role-doctor" name="role" value="doctor">
+            <label for="role-doctor">Doctor</label>
+        </div>
+
+        <div class="chat-window">
+            <div id="chat-messages" class="chat-messages">
+                <div class="message system-message">
+                    Hello! I'm your Doctor Appointment Assistant. How can I help you today?
+                </div>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="user-input" placeholder="Type your message...">
+                <button id="send-button">Send</button>
+            </div>
+        </div>
+        <button id="seed-db-button" class="seed-button">Seed Database</button>
+        <div id="status-message" class="status-message"></div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
