@@ -7,13 +7,13 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from typing import Dict, Any, Optional
+from fastapi.middleware.cors import CORSMiddleware
 
 from pydantic import BaseModel
 
 from backend.database import init_db, get_db
 from backend.services.seeder import seed_all
 from backend.agents.doctor_agent import DoctorAppointmentAgent
-# Import all tool modules
 from backend.mcp_tools import appointment_tools, availability_tools, reporting_tools, doctor_tools
 
 logging.basicConfig(level=logging.INFO)
@@ -25,6 +25,14 @@ app = FastAPI(
     title="Doctor Appointment Assistant",
     description="A single, unified server for the Agentic AI application.",
     version="2.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], 
+    allow_credentials=True,
+    allow_methods=["*"], 
+    allow_headers=["*"], 
 )
 
 app.mount("/static", StaticFiles(directory="backend/static"), name="static")

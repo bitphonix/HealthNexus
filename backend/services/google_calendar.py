@@ -2,6 +2,7 @@
 import os
 from datetime import datetime
 import pytz
+import json
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -22,17 +23,26 @@ logger = logging.getLogger(__name__)
 
 def get_credentials():
     creds = None
-    if os.path.exists(TOKEN_PATH):
+    token_json_str = os.getenv("GOOGLE_TOKEN_JSON")
+    if token_json_str:
+        logger.info("Found token in environment variable. Loading credentials from it.")
+        token_info = json.loads(token_json_str)
+        creds = Credentials.from_authorized_user_info(token_info, SCOPES)
+
+    elif os.path.exists(TOKEN_PATH):
+        logger.info("Found local token.json file. Loading credentials from it.")
         creds = Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(GOOGLE_CREDENTIALS_PATH, SCOPES)
+            logger.info("No valid credentials found. Starting local server for authentication.")
+            flow = InstalledAppFlow.from_client_secrets_file(GOOGLE_CREDS_PATH, SCOPES)
             creds = flow.run_local_server(port=0)
         with open(TOKEN_PATH, 'w') as token:
             token.write(creds.to_json())
     return creds
+
 
 async def get_calendar_service():
     try:
