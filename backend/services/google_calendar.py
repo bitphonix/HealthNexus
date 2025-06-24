@@ -37,7 +37,7 @@ def get_credentials():
             creds.refresh(Request())
         else:
             logger.info("No valid credentials found. Starting local server for authentication.")
-            flow = InstalledAppFlow.from_client_secrets_file(GOOGLE_CREDS_PATH, SCOPES)
+            flow = InstalledAppFlow.from_client_secrets_file(GOOGLE_CREDENTIALS_PATH, SCOPES)
             creds = flow.run_local_server(port=0)
         with open(TOKEN_PATH, 'w') as token:
             token.write(creds.to_json())
