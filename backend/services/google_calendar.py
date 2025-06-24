@@ -15,7 +15,6 @@ from starlette.concurrency import run_in_threadpool
 load_dotenv()
 
 SCOPES = ['https://www.googleapis.com/auth/calendar']
-GOOGLE_CREDENTIALS_PATH = "google_creds_v2.json"
 TOKEN_PATH = "token.json"
 
 logging.basicConfig(level=logging.INFO)
@@ -23,24 +22,35 @@ logger = logging.getLogger(__name__)
 
 def get_credentials():
     creds = None
+    
     token_json_str = os.getenv("GOOGLE_TOKEN_JSON")
     if token_json_str:
         logger.info("Found token in environment variable. Loading credentials from it.")
         token_info = json.loads(token_json_str)
         creds = Credentials.from_authorized_user_info(token_info, SCOPES)
-
+        
     elif os.path.exists(TOKEN_PATH):
         logger.info("Found local token.json file. Loading credentials from it.")
         creds = Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
+
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            logger.info("No valid credentials found. Starting local server for authentication.")
-            flow = InstalledAppFlow.from_client_secrets_file(GOOGLE_CREDENTIALS_PATH, SCOPES)
+            creds_json_str = os.getenv("GOOGLE_CREDENTIALS_JSON") 
+            if creds_json_str:
+                logger.info("Found Google credentials in environment variable.")
+                creds_info = json.loads(creds_json_str)
+                flow = InstalledAppFlow.from_client_config(creds_info, SCOPES)
+            else:
+                logger.info("No valid credentials in env. Looking for local google_creds_v2.json file.")
+                flow = InstalledAppFlow.from_client_secrets_file("google_creds_v2.json", SCOPES)
+            
             creds = flow.run_local_server(port=0)
+
         with open(TOKEN_PATH, 'w') as token:
             token.write(creds.to_json())
+            
     return creds
 
 
