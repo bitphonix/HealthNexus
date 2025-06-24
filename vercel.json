@@ -1,0 +1,43 @@
+{
+
+  "builds": [
+
+    {
+
+      "src": "backend/static/",
+
+      "use": "@vercel/static"
+
+    },
+
+    {
+
+      "src": "backend/templates/",
+
+      "use": "@vercel/static"
+
+    }
+
+  ],
+
+  "rewrites": [
+
+    {
+
+      "source": "/static/(.*)",
+
+      "destination": "backend/static/$1"
+
+    },
+
+    {
+
+      "source": "/(.*)",
+
+      "destination": "backend/templates/index.html"
+
+    }
+
+  ]
+
+}
