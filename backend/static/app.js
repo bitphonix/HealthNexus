@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
             statusMessage.textContent = 'Agent is thinking...';
             statusMessage.classList.remove('error-message');
             
-            const response = await fetch('/chat/', {
+            const response = await fetch('https://healthnexus-backend.onrender.com/chat/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
