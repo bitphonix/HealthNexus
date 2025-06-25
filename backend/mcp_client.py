@@ -1,11 +1,9 @@
 # backend/mcp_client.py
-
 import asyncio
 from langchain.tools import StructuredTool
 from typing import Dict, Any, List, Optional
 import logging
 from pydantic import BaseModel, Field
-
 from backend.database import get_db
 from backend.mcp_tools import appointment_tools, availability_tools, doctor_tools, reporting_tools
 
@@ -52,6 +50,10 @@ class MCPClient:
         return wrapper
 
     def get_langchain_tools(self) -> List[StructuredTool]:
+        """
+        Provides BOTH a func (sync) and a coro (async) to the StructuredTool constructor.
+        This is the most robust way to define tools and fixes the deployment error.
+        """
         return [
             StructuredTool.from_function(
                 name="book_appointment",
