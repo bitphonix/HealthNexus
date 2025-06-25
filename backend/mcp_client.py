@@ -10,7 +10,7 @@ from backend.database import get_db
 from backend.mcp_tools import appointment_tools, availability_tools, doctor_tools, reporting_tools
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(_name_)
+logger = logging.getLogger(__name__)
 
 class BookAppointmentInput(BaseModel):
     patient_email: str = Field(description="The email address of the patient.")
