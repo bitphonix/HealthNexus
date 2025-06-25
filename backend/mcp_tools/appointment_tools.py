@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 IST = pytz.timezone('Asia/Kolkata')
 
 class ToolException(Exception):
-    """Custom exception for tool-related errors."""
     pass
 
 async def book_appointment(
@@ -26,9 +25,7 @@ async def book_appointment(
     appointment_time_str: str,
     reason: Optional[str] = None
 ) -> dict:
-    """
-    Books an appointment, and now correctly marks the availability slot as booked.
-    """
+
     result = {
         "status": "success",
         "message": "",
@@ -41,6 +38,7 @@ async def book_appointment(
         naive_appointment_time = datetime.strptime(appointment_time_str, "%Y-%m-%d %H:%M:%S")
         appointment_time = IST.localize(naive_appointment_time)
         end_time = appointment_time + timedelta(minutes=30)
+
         doctor = db.query(Doctor).filter(Doctor.email == doctor_email).first()
         if not doctor:
             result["status"] = "error"
@@ -56,7 +54,9 @@ async def book_appointment(
             return {"status": "error", "message": f"The requested time slot {appointment_time_str} is not a valid availability."}
         if availability_slot.is_booked:
              return {"status": "error", "message": f"Sorry, the time slot {appointment_time_str} has already been booked."}
+
         availability_slot.is_booked = True
+        
         patient = db.query(Patient).filter(Patient.email == patient_email).first()
         if not patient:
             logger.warning(f"Patient with email {patient_email} not found. Creating a new patient.")
@@ -71,10 +71,10 @@ async def book_appointment(
             status="scheduled"
         )
         db.add(appointment)
-        db.add(availability_slot)
+        db.merge(availability_slot)
         db.commit()
         db.refresh(appointment)
-        logger.info(f"Appointment created in DB with ID: {appointment.id} and availability slot updated.")
+        logger.info(f"Appointment created with ID: {appointment.id} and availability slot permanently updated.")
         result["appointment_id"] = appointment.id
         result["message"] = "Appointment successfully created in database."
 
@@ -84,7 +84,6 @@ async def book_appointment(
         result["status"] = "error"
         result["message"] = f"Database error: {e}"
         return result
-
     try:
         email_subject = "Your Appointment Confirmation"
         email_body = f"Dear {patient.name},\n\nYour appointment with Dr. {doctor.name} on {appointment_time.strftime('%Y-%m-%d at %H:%M %Z')} is confirmed."
@@ -94,7 +93,7 @@ async def book_appointment(
             result["email_status"] = "Email sending failed."
     except Exception as e:
         result["email_status"] = f"An unexpected error occurred during email sending: {e}"
-
+        
     try:
         event_summary = f"Appointment: {patient.name} with Dr. {doctor.name}"
         event_description = f"Reason: {reason or 'N/A'}"
@@ -103,9 +102,10 @@ async def book_appointment(
             end_time=end_time, attendees=[patient.email, doctor.email]
         )
         result["calendar_event_link"] = calendar_link or "Failed to create calendar event."
-
     except Exception as e:
         result["calendar_event_link"] = f"An unexpected error occurred during calendar event creation: {e}"
+
     full_message = f"Appointment created with ID {result['appointment_id']}. Email status: {result['email_status']}. Calendar status: {result['calendar_event_link']}"
     result["message"] = full_message
+
     return result
