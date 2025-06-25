@@ -23,19 +23,11 @@ async def get_appointments_summary_for_doctor(db: Session, doctor_email: str, ta
             raise ToolException(f"Doctor with email {doctor_email} not found.")
 
         target_date = datetime.strptime(target_date_str, "%Y-%m-%d").date() if target_date_str else date.today()
-
-        start_of_day_ist = IST.localize(datetime.combine(target_date, datetime.min.time()))
-        end_of_day_ist = IST.localize(datetime.combine(target_date, datetime.max.time()))
-
-        start_of_day_utc = start_of_day_ist.astimezone(pytz.utc)
-        end_of_day_utc = end_of_day_ist.astimezone(pytz.utc)
-
         appointments = db.query(Appointment).options(
-            joinedload(Appointment.patient) 
+            joinedload(Appointment.patient)
         ).filter(
             Appointment.doctor_id == doctor.id,
-            Appointment.appointment_time >= start_of_day_utc,
-            Appointment.appointment_time < end_of_day_utc
+            cast(Appointment.appointment_time.op('AT TIME ZONE')('Asia/Kolkata'), Date) == target_date
         ).order_by(Appointment.appointment_time).all()
 
         doctor_name = doctor.name.replace("Dr. ", "").strip()
