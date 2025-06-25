@@ -1,7 +1,9 @@
 # backend/database.py
+
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
+from contextlib import contextmanager
 from dotenv import load_dotenv
 import logging
 
@@ -11,7 +13,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL environment variable not set")
 
-engine = create_engine(DATABASE_URL)
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -25,11 +27,20 @@ def get_db():
     finally:
         db.close()
 
+@contextmanager
+def get_db_context():
+    db = SessionLocal()
+    try:
+        yield db
+        db.commit() 
+    except Exception:
+        db.rollback() 
+        raise
+    finally:
+        db.close()
+
 def init_db():
     logger.info("Initializing database...")
-    from . import models # Import models to ensure they are registered with Base
+    from . import models
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created or already exist.")
-
-if __name__ == "__main__":
-    init_db()

@@ -1,10 +1,11 @@
 # backend/mcp_client.py
+
 import asyncio
 from langchain.tools import StructuredTool
 from typing import Dict, Any, List, Optional
 import logging
 from pydantic import BaseModel, Field
-from backend.database import get_db
+from backend.database import get_db_context  # <-- Import the new context manager
 from backend.mcp_tools import appointment_tools, availability_tools, doctor_tools, reporting_tools
 
 logging.basicConfig(level=logging.INFO)
@@ -30,30 +31,21 @@ class GetDoctorsInput(BaseModel):
 class GetDoctorDetailsInput(BaseModel):
     doctor_name: str = Field(description="The full name of the doctor to look up details for.")
 
+
 class MCPClient:
     def _create_async_tool_func(self, tool_async_func):
-        """Creates an async wrapper that handles the database session."""
         async def wrapper(**kwargs):
-            db_gen = get_db()
-            db = next(db_gen)
-            try:
+            with get_db_context() as db:
                 return await tool_async_func(db=db, **kwargs)
-            finally:
-                next(db_gen, None)
         return wrapper
 
     def _create_sync_tool_func(self, tool_async_func):
-        """Creates a sync wrapper that calls the async version."""
         async_func = self._create_async_tool_func(tool_async_func)
         def wrapper(**kwargs):
             return asyncio.run(async_func(**kwargs))
         return wrapper
 
     def get_langchain_tools(self) -> List[StructuredTool]:
-        """
-        Provides BOTH a func (sync) and a coro (async) to the StructuredTool constructor.
-        This is the most robust way to define tools and fixes the deployment error.
-        """
         return [
             StructuredTool.from_function(
                 name="book_appointment",

@@ -1,4 +1,3 @@
-# backend/agents/doctor_agent.py
 import os
 import logging
 from typing import Dict, Any
