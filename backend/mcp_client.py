@@ -38,7 +38,8 @@ class MCPClient:
         return asyncio.run(coro(**kwargs))
 
     async def _call_tool(self, tool_name: str, method: str, params: Optional[Dict] = None, json_data: Optional[Dict] = None) -> Dict[str, Any]:
-        async with httpx.AsyncClient(base_url=self.base_url) as client:
+        timeout = httpx.Timeout(30.0, connect=5.0)
+        async with httpx.AsyncClient(base_url=self.base_url, timeout=timeout) as client:
             try:
                 endpoint = f"/tools/{tool_name}/"
                 if method.upper() == "POST": response = await client.post(endpoint, json=json_data)
