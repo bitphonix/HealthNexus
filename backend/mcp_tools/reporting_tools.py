@@ -16,6 +16,7 @@ IST = pytz.timezone('Asia/Kolkata')
 
 class ToolException(Exception): ...
 
+
 async def get_appointments_summary_for_doctor(db: Session, doctor_email: str, target_date_str: Optional[str] = None) -> dict:
     try:
         doctor = db.query(Doctor).filter(Doctor.email == doctor_email).first()
@@ -23,9 +24,8 @@ async def get_appointments_summary_for_doctor(db: Session, doctor_email: str, ta
             raise ToolException(f"Doctor with email {doctor_email} not found.")
 
         target_date = datetime.strptime(target_date_str, "%Y-%m-%d").date() if target_date_str else date.today()
-        appointments = db.query(Appointment).options(
-            joinedload(Appointment.patient)
-        ).filter(
+
+        appointments = db.query(Appointment).filter(
             Appointment.doctor_id == doctor.id,
             cast(Appointment.appointment_time.op('AT TIME ZONE')('Asia/Kolkata'), Date) == target_date
         ).order_by(Appointment.appointment_time).all()
@@ -55,7 +55,7 @@ async def get_appointments_summary_for_doctor(db: Session, doctor_email: str, ta
     except Exception as e:
         logger.error(f"Error in get_appointments_summary_for_doctor: {e}", exc_info=True)
         return {"status": "error", "message": str(e)}
-
+    
 async def get_patient_count_by_date(db: Session, target_date_str: str) -> dict:
     try:
         target_date = datetime.strptime(target_date_str, "%Y-%m-%d").date()
