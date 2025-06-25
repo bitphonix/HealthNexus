@@ -25,32 +25,45 @@ async def get_appointments_summary_for_doctor(db: Session, doctor_email: str, ta
 
         target_date = datetime.strptime(target_date_str, "%Y-%m-%d").date() if target_date_str else date.today()
 
-        appointments = db.query(Appointment).filter(
+        start_of_day = datetime.combine(target_date, datetime.min.time())
+        end_of_day = datetime.combine(target_date, datetime.max.time())
+        
+        start_of_day_ist = IST.localize(start_of_day)
+        end_of_day_ist = IST.localize(end_of_day)
+
+        appointments = db.query(Appointment).options(joinedload(Appointment.patient)).filter(
             Appointment.doctor_id == doctor.id,
-            cast(Appointment.appointment_time.op('AT TIME ZONE')('Asia/Kolkata'), Date) == target_date
+            Appointment.appointment_time >= start_of_day_ist,
+            Appointment.appointment_time <= end_of_day_ist
         ).order_by(Appointment.appointment_time).all()
 
         doctor_name = doctor.name.replace("Dr. ", "").strip()
 
         if not appointments:
-            message = f"Dr. {doctor_name} has no appointments scheduled for {target_date.strftime('%Y-%m-%d')}."
+            message = f"Dr. {doctor_name} has no appointments scheduled for {target_date.strftime('%B %d, %Y')}."
             await send_slack_message(f"Daily Summary for Dr. {doctor_name}:\n{message}")
             return {"status": "success", "message": message}
 
-        summary_lines = [f"Daily Appointment Summary for Dr. {doctor_name} ({target_date.strftime('%Y-%m-%d')}):"]
+        summary_lines = [f"Daily Appointment Summary for Dr. {doctor_name} ({target_date.strftime('%B %d, %Y')}):"]
         for i, appt in enumerate(appointments):
-            appt_time_ist = appt.appointment_time.astimezone(IST)
+            if appt.appointment_time.tzinfo:
+                appt_time_ist = appt.appointment_time.astimezone(IST)
+            else:
+                appt_time_ist = IST.localize(appt.appointment_time)
+                
             summary_lines.append(
                 f"{i+1}. Time: {appt_time_ist.strftime('%H:%M')} IST, "
                 f"Patient: {appt.patient.name} ({appt.patient.email}), "
-                f"Reason: {appt.reason or 'N/A'}"
+                f"Reason: {appt.reason or 'N/A'}, "
+                f"ID: {appt.id}"
             )
+        
         full_summary = "\n".join(summary_lines)
-
         await send_slack_message(full_summary)
         return {
-            "status": "success", "message": "Appointment summary generated and sent to Slack.",
-            "summary": full_summary
+            "status": "success", 
+            "message": full_summary, 
+            "appointment_count": len(appointments)
         }
     except Exception as e:
         logger.error(f"Error in get_appointments_summary_for_doctor: {e}", exc_info=True)

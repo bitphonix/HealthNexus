@@ -1,5 +1,4 @@
-# backend/database.py
-
+# backend/database.py - ENHANCED VERSION
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
@@ -13,7 +12,12 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL environment variable not set")
 
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+engine = create_engine(
+    DATABASE_URL, 
+    pool_pre_ping=True,
+    pool_recycle=300, 
+    echo=False  
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -32,9 +36,10 @@ def get_db_context():
     db = SessionLocal()
     try:
         yield db
-        db.commit() 
-    except Exception:
-        db.rollback() 
+        db.commit()
+    except Exception as e:
+        logger.error(f"Database error: {e}")
+        db.rollback()
         raise
     finally:
         db.close()
