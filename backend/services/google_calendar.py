@@ -15,7 +15,7 @@ load_dotenv()
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(_name__)
+logger = logging.getLogger(__name__)
 
 def get_credentials():
     client_id = os.getenv("GOOGLE_CLIENT_ID")
