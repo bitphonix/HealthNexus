@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         statusMessage.textContent = 'Seeding database... This may take a moment.';
         statusMessage.classList.remove('error-message');
         try {
-            const response = await fetch('/seed', { method: 'GET' });
+            const response = await fetch('https://healthnexus-backend.onrender.com/seed', { method: 'GET' });
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.detail || 'Failed to seed database.');
