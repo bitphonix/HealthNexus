@@ -31,7 +31,7 @@ async def get_appointments_summary_for_doctor(db: Session, doctor_email: str, ta
         start_of_day_ist = IST.localize(start_of_day)
         end_of_day_ist = IST.localize(end_of_day)
 
-        appointments = db.query(Appointment).options(joinedload(Appointment.patient)).filter(
+        appointments = db.query(Appointment).join(Patient).filter(
             Appointment.doctor_id == doctor.id,
             Appointment.appointment_time >= start_of_day_ist,
             Appointment.appointment_time <= end_of_day_ist
@@ -50,10 +50,23 @@ async def get_appointments_summary_for_doctor(db: Session, doctor_email: str, ta
                 appt_time_ist = appt.appointment_time.astimezone(IST)
             else:
                 appt_time_ist = IST.localize(appt.appointment_time)
+            
+            if appt.patient:
+                patient_name = appt.patient.name
+                patient_email = appt.patient.email
+            else:
+                patient = db.query(Patient).filter(Patient.id == appt.patient_id).first()
+                if patient:
+                    patient_name = patient.name
+                    patient_email = patient.email
+                else:
+                    patient_name = "Unknown Patient"
+                    patient_email = "N/A"
+                    logger.warning(f"Patient not found for appointment {appt.id} with patient_id {appt.patient_id}")
                 
             summary_lines.append(
                 f"{i+1}. Time: {appt_time_ist.strftime('%H:%M')} IST, "
-                f"Patient: {appt.patient.name} ({appt.patient.email}), "
+                f"Patient: {patient_name} ({patient_email}), "
                 f"Reason: {appt.reason or 'N/A'}, "
                 f"ID: {appt.id}"
             )
@@ -91,4 +104,4 @@ async def get_patients_with_condition(db: Session, condition: str) -> dict:
         results = [{"patient_name": p.name, "patient_email": p.email, "condition": p.condition} for p in patients]
         return {"status": "success", "message": f"Found {len(results)} patients.", "patients": results}
     except Exception as e:
-        return {"status": "error", "message": f"An unexpected error occurred: {e}"}
+        return {"status": "error", "message": f"An unexpected error occurred: {e}"}")
