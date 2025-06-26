@@ -54,7 +54,7 @@ class DoctorAppointmentAgent:
                 "5.  *Check Availability:* Ask for a date and use the check_doctor_availability tool with the doctor's information.\n"
                 "6.  *Get Time Choice:* Present the list of available time strings from the tool's output and get the user's choice.\n"
                 "7.  *Confirm and Book:* Ask for final confirmation. Then, use the book_appointment tool with the exact patient_email, doctor_email, appointment time, and reason you collected."
-            )
+            )
         else: 
             system_prompt = (
                 "PRIMARY DIRECTIVE: You are an informational AI assistant for doctors. Your only purpose is to use the provided tools to answer questions about appointments and patients. You have full permission to use all tools.\n\n"
