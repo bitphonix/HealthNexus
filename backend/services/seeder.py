@@ -44,7 +44,8 @@ def seed_availabilities(db: Session, num_days: int = 7):
     
     booked_slots = set()
     for appt in future_appointments:
-        naive_ist_time = appt.appointment_time.astimezone(IST).replace(tzinfo=None)
+        ist_time = appt.appointment_time.astimezone(IST)
+        naive_ist_time = ist_time.replace(tzinfo=None)
         booked_slots.add((appt.doctor_id, naive_ist_time))
     
     db.query(DoctorAvailability).delete()
@@ -53,15 +54,17 @@ def seed_availabilities(db: Session, num_days: int = 7):
     for doctor in all_doctors:
         for i in range(num_days):
             current_date = date.today() + timedelta(days=i)
-            for hour in [9, 11, 14, 16]:
-                start_time = datetime(current_date.year, current_date.month, current_date.day, hour, 0, 0)
-                is_slot_booked = (doctor.id, start_time) in booked_slots
+            for hour in [9, 11, 14, 16]: 
+                aware_datetime = IST.localize(datetime(current_date.year, current_date.month, current_date.day, hour, 0, 0))
+                naive_datetime = aware_datetime.replace(tzinfo=None)
+                
+                is_slot_booked = (doctor.id, naive_datetime) in booked_slots
                 
                 new_slot = DoctorAvailability(
                     doctor_id=doctor.id,
                     date=current_date,
-                    start_time=start_time,
-                    end_time=start_time + timedelta(hours=1),
+                    start_time=naive_datetime,  
+                    end_time=naive_datetime + timedelta(hours=1),
                     is_booked=is_slot_booked
                 )
                 new_availability_slots.append(new_slot)
@@ -69,7 +72,6 @@ def seed_availabilities(db: Session, num_days: int = 7):
     db.add_all(new_availability_slots)
     db.commit()
     logger.info(f"Refreshed availability for {len(all_doctors)} doctors, preserving {len(booked_slots)} existing bookings.")
-
 
 def seed_all(db: Session):
     logger.info("Running smart seeder...")

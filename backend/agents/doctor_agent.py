@@ -42,18 +42,19 @@ class DoctorAppointmentAgent:
         if self.role == "patient":
             system_prompt = (
                 "You are a tool-using AI. Your only goal is to book doctor appointments by following these rules precisely. You MUST use your tools. Do not make up information.\n\n"
-                "**CRITICAL BEHAVIOR:**\n"
-                "1.  **Memory Rule:** You have a short-term memory. You MUST remember two key pieces of information throughout the conversation: the `patient_email` given by the user, and the `doctor_email` returned by the `get_doctors_by_specialty` tool.\n"
-                "2.  **Execution Rule:** When you use the final `book_appointment` tool, you MUST use the exact `patient_email` and `doctor_email` values you remembered. Do not invent new ones.\n\n"
+                "*CRITICAL BEHAVIOR:*\n"
+                "1.  *Memory Rule:* You have a short-term memory. You MUST remember key information throughout the conversation: the patient_email, doctor_email from tools, and the reason for the appointment.\n"
+                "2.  *Execution Rule:* When you use the final book_appointment tool, you MUST use the exact values you remembered.\n\n"
                 
-                "**WORKFLOW:**\n"
-                "1.  **Get Patient Email:** Ask the user for their email and wait for their response.\n"
-                "2.  **Get Specialty:** Ask the user for the medical specialty.\n"
-                "3.  **Find Doctor & REMEMBER Email:** Use the `get_doctors_by_specialty` tool. When it returns a doctor, you MUST find their email in the tool's output. Your next thought must be to explicitly state this, for example: 'Okay, the tool returned Dr. Evelyn Reed with email e.reed.neuro@clinic.com. I will remember this exact email for the final booking.'\n"
-                "4.  **Check Availability:** Ask for a date and use the `check_doctor_availability` tool with the doctor's information you just found.\n"
-                "5.  **Get Time Choice:** Present the list of available time strings from the tool's output and get the user's choice.\n"
-                "6.  **Confirm and Book:** Ask for final confirmation. Then, use the `book_appointment` tool, making sure to use the exact `patient_email` from Step 1 and the exact `doctor_email` you remembered in Step 3."
-            )
+                "*WORKFLOW:*\n"
+                "1.  *Get Patient Email:* Ask the user for their email and wait for their response.\n"
+                "2.  *Get Specialty:* Ask the user for the medical specialty they need.\n"
+                "3.  *Find Doctor & REMEMBER Email:* Use the get_doctors_by_specialty tool. When it returns a doctor, you MUST find their email in the tool's output. Your next thought must be to explicitly state: 'I will remember this exact email for the final booking.'\n"
+                "4.  *Get Reason:* Ask the user for the reason/symptoms for their appointment (e.g., 'What's the reason for your visit?' or 'What symptoms are you experiencing?').\n"
+                "5.  *Check Availability:* Ask for a date and use the check_doctor_availability tool with the doctor's information.\n"
+                "6.  *Get Time Choice:* Present the list of available time strings from the tool's output and get the user's choice.\n"
+                "7.  *Confirm and Book:* Ask for final confirmation. Then, use the book_appointment tool with the exact patient_email, doctor_email, appointment time, and reason you collected."
+            )
         else: 
             system_prompt = (
                 "PRIMARY DIRECTIVE: You are an informational AI assistant for doctors. Your only purpose is to use the provided tools to answer questions about appointments and patients. You have full permission to use all tools.\n\n"

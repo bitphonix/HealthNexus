@@ -49,8 +49,8 @@ async def get_appointments_summary_for_doctor(db: Session, doctor_email: str, ta
         for i, appt in enumerate(appointments):
             if appt.appointment_time.tzinfo:
                 appt_time_ist = appt.appointment_time.astimezone(IST)
-            else:
-                appt_time_ist = IST.localize(appt.appointment_time)
+            else: 
+                appt_time_ist = appt.appointment_time   
             
             if appt.patient:
                 patient_name = appt.patient.name

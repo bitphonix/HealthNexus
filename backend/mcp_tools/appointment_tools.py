@@ -34,8 +34,10 @@ async def book_appointment(
 
     try:
         naive_appointment_time = datetime.strptime(appointment_time_str, "%Y-%m-%d %H:%M:%S")
+        appointment_time_for_db = naive_appointment_time
         appointment_time = IST.localize(naive_appointment_time)
         end_time = appointment_time + timedelta(minutes=30)
+
 
         doctor = db.query(Doctor).filter(Doctor.email == doctor_email).first()
         if not doctor:
@@ -73,7 +75,7 @@ async def book_appointment(
         appointment = Appointment(
             patient_id=patient.id,
             doctor_id=doctor.id,
-            appointment_time=appointment_time,
+            appointment_time=appointment_time_for_db,
             reason=reason,
             status="scheduled"
         )
