@@ -18,6 +18,7 @@ class ToolException(Exception): ...
 
 
 async def get_appointments_summary_for_doctor(db: Session, doctor_email: str, target_date_str: Optional[str] = None) -> dict:
+    logger.info(f"DEBUG: Starting appointment summary for {doctor_email} on {target_date_str}")
     try:
         doctor = db.query(Doctor).filter(Doctor.email == doctor_email).first()
         if not doctor:
@@ -104,4 +105,4 @@ async def get_patients_with_condition(db: Session, condition: str) -> dict:
         results = [{"patient_name": p.name, "patient_email": p.email, "condition": p.condition} for p in patients]
         return {"status": "success", "message": f"Found {len(results)} patients.", "patients": results}
     except Exception as e:
-        return {"status": "error", "message": f"An unexpected error occurred: {e}"}")
+        return {"status": "error", "message": f"An unexpected error occurred: {e}"}
